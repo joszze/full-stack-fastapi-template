@@ -58,8 +58,8 @@ async def get(session: SessionDep, current_user: CurrentUser):
     print(current_user)
     return HTMLResponse(html)
 
-@router.websocket("/ws", dependencies=[Depends(get_current_user)])
-async def websocket_endpoint(websocket: WebSocket):
+@router.websocket("/ws")
+async def websocket_endpoint(session: SessionDep, current_user: CurrentUser, websocket: WebSocket):
     await websocket.accept()
     while True:
         data = await websocket.receive_text()
