@@ -52,8 +52,8 @@ class Settings(BaseSettings):
     SENTRY_DSN: HttpUrl | None = None
     POSTGRES_SERVER: str
     POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str = ""
+    POSTGRES_USER: str = "test"
+    POSTGRES_PASSWORD: str = "test"
     POSTGRES_DB: str = ""
 
     @computed_field  # type: ignore[prop-decorator]
@@ -110,6 +110,7 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
+        print(self.SECRET_KEY)
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._check_default_secret(
