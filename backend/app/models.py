@@ -1,6 +1,8 @@
+from datetime import datetime
 import uuid
 
 from pydantic import EmailStr
+from sqlalchemy import table
 from sqlmodel import Field, Relationship, SQLModel
 
 
@@ -44,7 +46,7 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
-
+    chat_messages: list["ChatMessage"] = Relationship(back_populates="author", cascade_delete=True)
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
@@ -112,3 +114,24 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+    
+    
+class ChatMessageBase(SQLModel):
+    message: str
+
+class ChatMessagePublic(ChatMessageBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime
+    
+class ChatMessageCreate(ChatMessageBase):
+    user_id: uuid.UUID
+
+class ChatMessagesPublic(SQLModel):
+    data: list[ChatMessagePublic]
+    
+class ChatMessage(ChatMessageBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)    
+    created_at: datetime = Field(default_factory=datetime.now)
+    author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
+    author: User | None = Relationship(back_populates="chat_messages")

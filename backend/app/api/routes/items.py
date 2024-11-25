@@ -37,8 +37,9 @@ def read_items(
             .limit(limit)
         )
         items = session.exec(statement).all()
-
-    return ItemsPublic(data=items, count=count)
+        
+    item_public_list = [ItemPublic(**item.model_dump()) for item in items]
+    return ItemsPublic(data=item_public_list, count=count)
 
 
 @router.get("/{id}", response_model=ItemPublic)
