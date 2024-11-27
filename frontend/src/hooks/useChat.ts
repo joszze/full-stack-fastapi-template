@@ -1,30 +1,53 @@
 import { useState, useEffect } from "react";
 import useWebSocket from "react-use-websocket";
+import { ChatMessagePublic, ChatService } from "../client";
+import { useQuery } from "@tanstack/react-query";
+
+function getMessagesQueryOptions() {
+  return {
+    queryFn: () => ChatService.getMessages(),
+    queryKey: ["messages"],
+  };
+}
 
 const useChat = () => {
   const socketUrl = `ws://localhost:8000/api/v1/chat/ws?token=${localStorage.getItem("access_token")}`;
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl, {
-    shouldReconnect: () => true,
+  const { lastJsonMessage, readyState, sendJsonMessage } = useWebSocket<string>(
+    socketUrl,
+    {
+      shouldReconnect: () => true,
+    }
+  );
+
+  const { data: initialMessages, isPending } = useQuery({
+    ...getMessagesQueryOptions(),
   });
 
-  const [messages, setMessages] = useState<string[]>([]);
-  console.log(lastMessage);
+  const [messages, setMessages] = useState<ChatMessagePublic[]>([]);
+
+  function sendMessage(message: string) {
+    sendJsonMessage({ message });
+  }
 
   useEffect(() => {
-    setMessages((state) => [...state, lastMessage?.data]);
-  }, [lastMessage]);
+    console.log(typeof lastJsonMessage);
+    lastJsonMessage &&
+      setMessages((state) => [
+        ...state,
+        JSON.parse(lastJsonMessage) as ChatMessagePublic,
+      ]);
+  }, [lastJsonMessage]);
 
   useEffect(() => {
-    setMessages(JSON.parse(localStorage.getItem("savedMessages") || "[]"));
-    return () => {
-      localStorage.setItem("savedMessages", JSON.stringify(messages));
-    };
-  }, []);
+    console.log(initialMessages);
+    initialMessages && setMessages(initialMessages.data);
+  }, [initialMessages]);
 
   return {
+    loadingMessages: isPending,
     messages,
     sendMessage,
-    lastMessage,
+    lastJsonMessage,
     readyState,
   };
 };

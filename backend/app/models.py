@@ -118,14 +118,16 @@ class NewPassword(SQLModel):
     
 class ChatMessageBase(SQLModel):
     message: str
+    
 
 class ChatMessagePublic(ChatMessageBase):
     id: uuid.UUID
-    owner_id: uuid.UUID
+    author_id: uuid.UUID
     created_at: datetime
+    author_alias: str | None = None
     
 class ChatMessageCreate(ChatMessageBase):
-    user_id: uuid.UUID
+    pass
 
 class ChatMessagesPublic(SQLModel):
     data: list[ChatMessagePublic]
@@ -135,3 +137,4 @@ class ChatMessage(ChatMessageBase, table=True):
     created_at: datetime = Field(default_factory=datetime.now)
     author_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, ondelete="CASCADE")
     author: User | None = Relationship(back_populates="chat_messages")
+    author_alias: str | None = None

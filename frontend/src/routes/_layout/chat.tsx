@@ -12,6 +12,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { FormEvent, useState } from "react";
 import useChat from "../../hooks/useChat";
 import useAuth from "../../hooks/useAuth";
+import { ChatMessagePublic } from "../../client";
 
 export const Route = createFileRoute("/_layout/chat")({
   component: Chat,
@@ -31,17 +32,18 @@ function Chat() {
   );
 }
 
-function ChatMessages({ messages }: { messages: string[] }) {
+function ChatMessages({ messages }: { messages: ChatMessagePublic[] }) {
   const { user } = useAuth();
   const name = user?.full_name ?? "Anonymous";
+  console.log(messages);
   return (
     <Box>
       {messages.map((message, index) => (
         <Flex key={index} gap={2}>
-          <Avatar name={name} />
+          <Avatar name={message?.author_alias ?? name} />
           <Box>
             <Text fontWeight="bold">{name}</Text>
-            <Text>{message}</Text>
+            <Text>{message?.message} </Text>
           </Box>
         </Flex>
       ))}
